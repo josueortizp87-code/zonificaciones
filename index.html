@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ENEE - Zonificación Sector Juticalpa</title>
+    <title>ENEE - Zonificación de Red</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -11,52 +11,50 @@
 <body>
 
     <div id="form-zonificacion-container" class="container">
-        <header class="header-app">
-            <div class="logo-container">
-                <img src="https://www.eneeutcd.hn/es/dominios/enee.pagegear.co/plantillas/2024/recursos/logo_utcd.svg" alt="ENEE">
-            </div>
-            <h1 class="titulo-principal">SECTOR JUTICALPA - ZONIFICACIÓN</h1>
-            <p class="subtitulo">Desarrollador - Josué Ortiz</p>
+        <header style="text-align: center;">
+            <img src="https://www.eneeutcd.hn/es/dominios/enee.pagegear.co/plantillas/2024/recursos/logo_utcd.svg"
+                 alt="ENEE" class="logo-central">
+            <h1 class="titulo-blanco">SECTOR JUTICALPA - ZONIFICACIÓN</h1>
+            <p style="color: #bdc3c7; font-size: 0.8em; margin-bottom: 20px;">Desarrollador - Josué Ortiz</p>
         </header>
 
-        <div class="form-section">
-            <div class="input-group">
-                <label class="label-destacado">Circuito:</label>
-                <select id="zonif-circuito" class="input-resaltado">
-                    <option>JUT-L379</option><option>JUT-L380</option><option>JUT-L381</option>
-                    <option>JUT-L382</option><option>CAT-L375</option><option>CAT-L376</option>
-                    <option>GMC-L377 RS CAMPAMENTO</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label class="label-destacado">Zona de Levantamiento:</label>
-                <input type="text" id="zonif-area" class="input-resaltado" placeholder="Ej: Colonia San Juan / Barrio El Centro">
-            </div>
+        <div class="input-group">
+            <label class="label-resaltado">Circuito:</label>
+            <select id="zonif-circuito" class="select-profesional">
+                <option>JUT-L379</option><option>JUT-L380</option><option>JUT-L381</option>
+                <option>JUT-L382</option><option>CAT-L375</option><option>CAT-L376</option>
+                <option>GMC-L377 RS CAMPAMENTO</option>
+            </select>
         </div>
 
-        <div id="map-zonif" class="mapa-estilo"></div>
+        <div class="input-group">
+            <label class="label-resaltado">Zona de Levantamiento:</label>
+            <input type="text" id="zonif-area" class="input-profesional" placeholder="Ej: Colonia / Barrio">
+        </div>
+
+        <div id="map-zonif" class="mapa-borde"></div>
 
         <div class="grid-2" style="margin-top: 15px;">
-            <button type="button" class="btn-main btn-existente" onclick="abrirModalPunto('EXISTENTE')">
+            <button type="button" class="btn-accion" style="background:#4a5568;" onclick="abrirModalPunto('EXISTENTE')">
                 <i class="fas fa-circle"></i> + EXISTENTE
             </button>
-            <button type="button" class="btn-main btn-proyectada" onclick="abrirModalPunto('PROYECTADA')">
+            <button type="button" class="btn-accion" style="background:#27ae60;" onclick="abrirModalPunto('PROYECTADA')">
                 <i class="fas fa-plus-circle"></i> + PROYECTADA
             </button>
         </div>
 
         <div class="grid-2" style="margin-top: 10px;">
-            <button type="button" class="btn-outline" style="color:#fff; border-color:#fff;" onclick="setModoDibujo('EXISTENTE')">
+            <button type="button" class="btn-linea" style="border-color:#fff; color:#fff;" onclick="setModoDibujo('EXISTENTE')">
                 <i class="fas fa-grip-lines"></i> LÍNEA EXISTENTE
             </button>
-            <button type="button" class="btn-outline" style="color:#27ae60; border-color:#27ae60;" onclick="setModoDibujo('PROYECTADA')">
+            <button type="button" class="btn-linea" style="border-color:#27ae60; color:#27ae60;" onclick="setModoDibujo('PROYECTADA')">
                 <i class="fas fa-ellipsis-h"></i> LÍNEA PROYECTADA
             </button>
         </div>
 
-        <div class="status-bar">
+        <div id="lista-puntos" style="margin-top:15px; color:white; border-top: 1px solid #555; padding-top: 10px;">
             <h3>Apoyos levantados: <span id="contador-puntos">0</span></h3>
+            <ul id="ul-puntos" class="lista-mini"></ul>
         </div>
 
         <button class="btn-pptx" onclick="generarPowerPoint()">
@@ -64,31 +62,29 @@
         </button>
     </div>
 
-    <div id="modal-punto" class="modal">
+    <div id="modal-punto" class="modal" style="display:none;">
         <div class="modal-content">
-            <h2 class="modal-titulo">Detalles del Apoyo</h2>
-            <div class="modal-body">
-                <label>N° Apoyo:</label><input type="text" id="p-apoyo" class="input-modal">
-                <label>Tipo Poste:</label>
-                <select id="p-tipo-poste" class="input-modal">
-                    <option>PC 30FT</option><option>PC 35FT</option><option>PC 40FT</option><option>PC 45FT</option>
-                    <option>PMA 30FT</option><option>PMA 35FT</option><option>PMA 40FT</option><option>PMA 45FT</option>
-                    <option>PME 30FT</option><option>PME 35FT</option><option>PME 40FT</option><option>PME 45FT</option>
-                </select>
-                <label>Estructura:</label><input type="text" id="p-estructura" class="input-modal" placeholder="Ej: A-I-1">
-                <label>Transformador:</label>
-                <select id="p-trafo" class="input-modal">
-                    <option value="N/A">Sin Trafo</option>
-                    <option value="15kVA">15 kVA</option><option value="25kVA">25 kVA</option>
-                    <option value="37.5kVA">37.5 kVA</option><option value="50kVA">50 kVA</option>
-                    <option value="75kVA">75 kVA</option><option value="100kVA">100 kVA</option>
-                </select>
-                <label>Clientes:</label><input type="number" id="p-clientes" class="input-modal" value="0">
-                <label>Voltaje:</label><input type="text" id="p-voltaje" class="input-modal" placeholder="Ej: 120/240 V">
-            </div>
-            <div class="grid-2">
-                <button type="button" class="btn-main" style="background:#0984e3;" onclick="guardarPunto()">GUARDAR</button>
-                <button type="button" class="btn-main" style="background:#e74c3c;" onclick="cerrarModalPunto()">CANCELAR</button>
+            <h3 style="border-bottom: 2px solid #0984e3; padding-bottom: 10px;">Datos del Apoyo</h3>
+            <label>N° Apoyo:</label><input type="text" id="p-apoyo" class="input-form">
+            <label>Tipo Poste:</label>
+            <select id="p-tipo-poste" class="input-form">
+                <option>PC 30FT</option><option>PC 35FT</option><option>PC 40FT</option><option>PC 45FT</option>
+                <option>PMA 30FT</option><option>PMA 35FT</option><option>PMA 40FT</option><option>PMA 45FT</option>
+                <option>PME 30FT</option><option>PME 35FT</option><option>PME 40FT</option><option>PME 45FT</option>
+            </select>
+            <label>Estructura:</label><input type="text" id="p-estructura" class="input-form" placeholder="Ej: A-I-1">
+            <label>Transformador:</label>
+            <select id="p-trafo" class="input-form">
+                <option value="N/A">Sin Trafo</option>
+                <option value="15kVA">15 kVA</option><option value="25kVA">25 kVA</option>
+                <option value="37.5kVA">37.5 kVA</option><option value="50kVA">50 kVA</option>
+                <option value="75kVA">75 kVA</option><option value="100kVA">100 kVA</option>
+            </select>
+            <label>Clientes:</label><input type="number" id="p-clientes" class="input-form" value="0">
+            <label>Voltaje:</label><input type="text" id="p-voltaje" class="input-form" placeholder="Ej: 120/240 V">
+            <div class="grid-2" style="margin-top: 15px;">
+                <button type="button" class="btn-accion" style="background:#0984e3;" onclick="guardarPunto()">GUARDAR</button>
+                <button type="button" class="btn-accion" style="background:#e74c3c;" onclick="cerrarModalPunto()">CANCELAR</button>
             </div>
         </div>
     </div>
