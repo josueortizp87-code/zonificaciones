@@ -1,168 +1,159 @@
-const App = {
+var mapZ, markerZ;
+var puntosLevantados = [];
+var lineasRed = [];
 
-    estado: {
-        puntos: [],
-        lineas: [],
-        modoLinea: null,
-        tipoPunto: null,
-        puntoOrigen: null
-    },
+var tipoPuntoActual = "";
+var modoDibujo = null;
+var puntoOrigenParaLinea = null;
 
-    map: null,
-    marker: null,
-    capaDibujo: null,
+// 🔥 NUEVO: capa única para TODO lo dibujado
+var capaDibujo;
 
-    init() {
-        this.map = L.map('map-zonif').setView([14.65, -86.21], 16);
+const capaSatelite = L.tileLayer(
+    'https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',
+    { maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'] }
+);
 
-        this.satelite = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
-            maxZoom: 20,
-            subdomains:['mt0','mt1','mt2','mt3']
-        }).addTo(this.map);
+const capaCallesPlano = L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+);
 
-        this.plano = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-
-        this.capaDibujo = L.layerGroup().addTo(this.map);
-
-        this.marker = L.marker([14.65, -86.21], {draggable:true}).addTo(this.map);
-
-        this.cargarLocal();
-    },
-
-    abrirModal(tipo){
-        this.estado.tipoPunto = tipo;
-        document.getElementById("modal").style.display = "flex";
-    },
-
-    cerrarModal(){
-        document.getElementById("modal").style.display = "none";
-    },
-
-    guardarPunto(){
-
-        const coords = this.marker.getLatLng();
-
-        const punto = {
-            id: Date.now(),
-            tipo: this.estado.tipoPunto,
-            lat: coords.lat,
-            lng: coords.lng,
-            apoyo: document.getElementById("apoyo").value,
-            clientes: document.getElementById("clientes").value || 0
-        };
-
-        this.estado.puntos.push(punto);
-        this.guardarLocal();
-
-        this.dibujarPunto(punto);
-        this.cerrarModal();
-    },
-
-    dibujarPunto(p){
-
-        const color = p.tipo === 'PROYECTADA' ? 'green' : 'black';
-
-        const marker = L.circleMarker([p.lat, p.lng], {
-            radius: 8,
-            color: color
-        });
-
-        marker.on('click', () => this.clickLinea(p));
-
-        this.capaDibujo.addLayer(marker);
-    },
-
-    setModoLinea(tipo){
-        this.estado.modoLinea = tipo;
-        this.estado.puntoOrigen = null;
-        alert("Seleccione inicio y fin");
-    },
-
-    clickLinea(p){
-
-        if(!this.estado.modoLinea) return;
-
-        if(!this.estado.puntoOrigen){
-            this.estado.puntoOrigen = p;
-        } else {
-
-            this.trazarLinea(this.estado.puntoOrigen, p, this.estado.modoLinea);
-            this.estado.puntoOrigen = null;
-        }
-    },
-
-    trazarLinea(p1, p2, tipo){
-
-        const linea = {
-            tipo,
-            coords: [[p1.lat, p1.lng],[p2.lat, p2.lng]]
-        };
-
-        this.estado.lineas.push(linea);
-        this.guardarLocal();
-
-        this.dibujarLinea(linea);
-    },
-
-    dibujarLinea(l){
-
-        const poly = L.polyline(l.coords, {
-            color: l.tipo === 'PROYECTADA' ? 'green' : 'black',
-            dashArray: l.tipo === 'PROYECTADA' ? '10,10' : null,
-            weight: 4
-        });
-
-        this.capaDibujo.addLayer(poly);
-    },
-
-    redibujar(){
-        this.capaDibujo.clearLayers();
-
-        this.estado.puntos.forEach(p => this.dibujarPunto(p));
-        this.estado.lineas.forEach(l => this.dibujarLinea(l));
-    },
-
-    guardarLocal(){
-        localStorage.setItem("data", JSON.stringify(this.estado));
-    },
-
-    cargarLocal(){
-        const data = JSON.parse(localStorage.getItem("data"));
-        if(data){
-            this.estado = data;
-            this.redibujar();
-        }
-    },
-
-    async generarPPT(){
-
-        this.map.removeLayer(this.satelite);
-        this.plano.addTo(this.map);
-
-        await new Promise(r => setTimeout(r, 1000));
-
-        const canvas = await html2canvas(document.getElementById("map-zonif"), {
-            useCORS:true,
-            scale:2
-        });
-
-        const ppt = new PptxGenJS();
-        const slide = ppt.addSlide();
-
-        slide.addImage({
-            data: canvas.toDataURL(),
-            x:0.5,
-            y:0.5,
-            w:9,
-            h:5
-        });
-
-        ppt.writeFile("Plano_Zonificacion.pptx");
-
-        this.map.removeLayer(this.plano);
-        this.satelite.addTo(this.map);
-    }
-
+window.onload = function() {
+    initMapZonif();
 };
 
-window.onload = () => App.init();
+function initMapZonif() {
+
+    mapZ = L.map('map-zonif').setView([14.65, -86.21], 16);
+    capaSatelite.addTo(mapZ);
+
+    // 🔥 capa de dibujo
+    capaDibujo = L.layerGroup().addTo(mapZ);
+
+    markerZ = L.marker([14.65, -86.21], {draggable: true}).addTo(mapZ);
+}
+
+function setModoDibujo(tipo) {
+    modoDibujo = tipo;
+    puntoOrigenParaLinea = null;
+    alert("Seleccione punto inicial y final");
+}
+
+function abrirModalPunto(tipo) {
+    tipoPuntoActual = tipo;
+    modoDibujo = null;
+    document.getElementById('modal-punto').style.display = 'flex';
+}
+
+function cerrarModalPunto() {
+    document.getElementById('modal-punto').style.display = 'none';
+}
+
+function guardarPunto() {
+
+    const coords = markerZ.getLatLng();
+
+    const punto = {
+        id: Date.now(),
+        tipoRed: tipoPuntoActual,
+        lat: coords.lat,
+        lng: coords.lng,
+        apoyo: document.getElementById('p-apoyo').value || "S/N",
+        trafo: document.getElementById('p-trafo').value,
+        clientes: document.getElementById('p-clientes').value || 0
+    };
+
+    puntosLevantados.push(punto);
+
+    dibujarPuntoEnMapa(punto);
+}
+
+function dibujarPuntoEnMapa(p) {
+
+    const color = p.tipoRed === 'PROYECTADA' ? '#27ae60' : '#000';
+
+    const m = L.circleMarker([p.lat, p.lng], {
+        radius: 6,
+        color: color
+    });
+
+    m.on('click', function() {
+
+        if (!modoDibujo) return;
+
+        if (!puntoOrigenParaLinea) {
+            puntoOrigenParaLinea = p;
+        } else {
+            trazarLinea(puntoOrigenParaLinea, p, modoDibujo);
+            puntoOrigenParaLinea = null;
+        }
+    });
+
+    capaDibujo.addLayer(m);
+}
+
+function trazarLinea(pA, pB, tipo) {
+
+    const linea = {
+        tipo: tipo,
+        coords: [[pA.lat, pA.lng], [pB.lat, pB.lng]]
+    };
+
+    lineasRed.push(linea);
+
+    dibujarLinea(linea);
+}
+
+function dibujarLinea(l) {
+
+    const opciones = {
+        color: l.tipo === 'PROYECTADA' ? '#27ae60' : '#000',
+        weight: 4,
+        dashArray: l.tipo === 'PROYECTADA' ? '10,15' : null
+    };
+
+    L.polyline(l.coords, opciones).addTo(capaDibujo);
+}
+
+// 🔥 CLAVE PARA EL PPT
+function redibujarTodo() {
+
+    capaDibujo.clearLayers();
+
+    puntosLevantados.forEach(p => dibujarPuntoEnMapa(p));
+
+    lineasRed.forEach(l => dibujarLinea(l));
+}
+
+async function generarPowerPoint() {
+
+    let pptx = new PptxGenJS();
+
+    mapZ.removeLayer(capaSatelite);
+    capaCallesPlano.addTo(mapZ);
+
+    // 🔥 Forzar redibujo
+    redibujarTodo();
+
+    await new Promise(r => setTimeout(r, 1200));
+
+    const canvas = await html2canvas(document.getElementById('map-zonif'), {
+        useCORS: true,
+        scale: 2
+    });
+
+    let slide = pptx.addSlide();
+
+    slide.addImage({
+        data: canvas.toDataURL('image/png'),
+        x:0.5,
+        y:0.5,
+        w:9,
+        h:5
+    });
+
+    pptx.writeFile("Plano_Zonificacion.pptx");
+
+    mapZ.removeLayer(capaCallesPlano);
+    capaSatelite.addTo(mapZ);
+}
