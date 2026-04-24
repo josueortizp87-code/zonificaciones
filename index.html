@@ -9,8 +9,21 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
+    <div id="login-container" class="container" style="position: fixed; z-index: 9999; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <header style="text-align: center;">
+            <img src="https://www.eneeutcd.hn/es/dominios/enee.pagegear.co/plantillas/2024/recursos/logo_utcd.svg" alt="ENEE" class="logo-central">
+            <h1 class="titulo-blanco">ACCESO AL SISTEMA</h1>
+        </header>
+        <div class="input-group">
+            <label class="label-resaltado">Usuario:</label>
+            <input type="text" id="user-login" class="input-profesional">
+            <label class="label-resaltado">Contraseña:</label>
+            <input type="password" id="pass-login" class="input-profesional">
+            <button class="btn-accion" style="width: 100%; background: var(--accent);" onclick="validarAcceso()">ENTRAR</button>
+        </div>
+    </div>
 
-    <div id="form-zonificacion-container" class="container">
+    <div id="form-zonificacion-container" class="container" style="display: none;">
         <header style="text-align: center;">
             <img src="https://www.eneeutcd.hn/es/dominios/enee.pagegear.co/plantillas/2024/recursos/logo_utcd.svg"
                  alt="ENEE" class="logo-central">
@@ -19,12 +32,8 @@
         </header>
 
         <div class="input-group">
-            <label class="label-resaltado">Circuito:</label>
-            <select id="zonif-circuito" class="select-profesional">
-                <option>JUT-L379</option><option>JUT-L380</option><option>JUT-L381</option>
-                <option>JUT-L382</option><option>CAT-L375</option><option>CAT-L376</option>
-                <option>GMC-L377 RS CAMPAMENTO</option>
-            </select>
+            <label class="label-resaltado">Sector:</label>
+            <input type="text" id="zonif-area" class="input-profesional" placeholder="Ej: JUTICALPA">
         </div>
 
         <div class="input-group">

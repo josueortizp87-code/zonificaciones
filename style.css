@@ -139,3 +139,32 @@ body {
     width: 100%; padding: 10px; margin: 8px 0 15px;
     border-radius: 5px; border: 1px solid #555; background: white;
 }
+/* --- AGREGAR ESTO AL FINAL DE TU STYLE.CSS --- */
+
+/* Ajuste para el contenedor de Login */
+#login-container {
+    border: 3px solid var(--accent); /* Borde azul para resaltar el acceso */
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Animación de entrada suave */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -45%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* Estilo para los iconos SVG (ahora más pequeños) */
+.svg-marker {
+    background: transparent;
+    border: none;
+}
+
+/* Ajuste de visibilidad para que el mapa se renderice bien al entrar */
+#form-zonificacion-container[style*="display: block"] {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Estilo adicional para los campos de contraseña */
+input[type="password"] {
+    letter-spacing: 2px;
+}
