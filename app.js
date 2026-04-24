@@ -133,55 +133,82 @@ function latLngToUTM(lat, lng) {
 
 // --- 3. REPORTE PPTX (Paginación de 10 y nuevas columnas) ---
 async function generarPowerPoint() {
-    let pptx = new PptxGenJS();
-    const sector = document.getElementById('zonif-sector').value;
-    const circuito = document.getElementById('zonif-circuito').value;
-    const zona = document.getElementById('zonif-area').value || "Sector Sin Nombre";
+    try {
+        let pptx = new PptxGenJS();
+        const sector = document.getElementById('zonif-sector').value;
+        const circuito = document.getElementById('zonif-circuito').value;
+        const zona = document.getElementById('zonif-area').value || "Sector Sin Nombre";
 
-    mapZ.removeLayer(capaSatelite);
-    capaCallesPlano.addTo(mapZ);
+        // Cambiar a mapa de calles para el reporte
+        mapZ.removeLayer(capaSatelite);
+        capaCallesPlano.addTo(mapZ);
 
-    await new Promise(r => setTimeout(r, 4000));
+        // Esperar a que las baldosas del mapa carguen
+        await new Promise(r => setTimeout(r, 3000));
 
-    let slidePortada = pptx.addSlide();
-    slidePortada.addText(`PLANO TÉCNICO: ${circuito}`, { x:0.5, y:0.3, fontSize:18, bold:true, color:'003366' });
-    slidePortada.addText(`Sector: ${sector} | Zona: ${zona}`, { x:0.5, y:0.6, fontSize:14, color:'555555' });
+        let slidePortada = pptx.addSlide();
+        slidePortada.addText(`PLANO TÉCNICO: ${circuito}`, { x:0.5, y:0.3, fontSize:18, bold:true, color:'003366' });
+        slidePortada.addText(`Sector: ${sector} | Zona: ${zona}`, { x:0.5, y:0.6, fontSize:14, color:'555555' });
 
-    const canvas = await html2canvas(document.getElementById('map-zonif'), { useCORS: true, scale: 2 });
-    slidePortada.addImage({ data: canvas.toDataURL('image/png'), x:0.5, y:1.2, w:9, h:4.5 });
-
-    // TABLA DE APOYOS (Máximo 10 por hoja)
-    for (let i = 0; i < puntosLevantados.length; i += 10) {
-        let slide = pptx.addSlide();
-        slide.addText(`RESUMEN DE APOYOS - ${sector} - ${circuito}`, { x:0.5, y:0.2, fontSize:10, bold:true });
-
-        let filasTabla = [
-            [
-                { text: "Apoyo", options: { bold: true, fill: "003366", color: "FFFFFF" } },
-                { text: "UTM (E,N)", options: { bold: true, fill: "003366", color: "FFFFFF" } },
-                { text: "Grados (Lat, Lng)", options: { bold: true, fill: "003366", color: "FFFFFF" } },
-                { text: "Poste / Estr.", options: { bold: true, fill: "003366", color: "FFFFFF" } },
-                { text: "Trafo", options: { bold: true, fill: "003366", color: "FFFFFF" } },
-                { text: "Cli.", options: { bold: true, fill: "003366", color: "FFFFFF" } }
-            ]
-        ];
-
-        for (let j = i; j < i + 10 && j < puntosLevantados.length; j++) {
-            let p = puntosLevantados[j];
-            filasTabla.push([
-                p.apoyo,
-                p.utm,
-                `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`,
-                `${p.poste} / ${p.estructura}`,
-                p.trafo,
-                p.clientes
-            ]);
+        // Captura del mapa con manejo de errores
+        try {
+            const mapaElemento = document.getElementById('map-zonif');
+            const canvas = await html2canvas(mapaElemento, {
+                useCORS: true,
+                scale: 2,
+                logging: false,
+                allowTaint: true
+            });
+            slidePortada.addImage({ data: canvas.toDataURL('image/png'), x:0.5, y:1.2, w:9, h:4.5 });
+        } catch (e) {
+            console.error("Error capturando mapa:", e);
+            slidePortada.addText("(Error al cargar imagen del mapa)", { x:2, y:3, color:'FF0000' });
         }
 
-        slide.addTable(filasTabla, { x: 0.3, y: 0.5, w: 9.4, fontSize: 7, border: { type: 'solid', color: 'CCCCCC' }, align: 'center' });
-    }
+        // --- TABLA DE APOYOS ---
+        if (puntosLevantados.length === 0) {
+            alert("No hay puntos para exportar.");
+            return;
+        }
 
-    pptx.writeFile({ fileName: `Zonificacion_${sector}_${circuito}.pptx` });
-    mapZ.removeLayer(capaCallesPlano);
-    capaSatelite.addTo(mapZ);
+        for (let i = 0; i < puntosLevantados.length; i += 10) {
+            let slide = pptx.addSlide();
+            slide.addText(`RESUMEN DE APOYOS - ${sector} - ${circuito}`, { x:0.5, y:0.2, fontSize:10, bold:true });
+
+            let filasTabla = [
+                [
+                    { text: "Apoyo", options: { bold: true, fill: "003366", color: "FFFFFF" } },
+                    { text: "UTM (E,N)", options: { bold: true, fill: "003366", color: "FFFFFF" } },
+                    { text: "Lat, Lng", options: { bold: true, fill: "003366", color: "FFFFFF" } },
+                    { text: "Poste / Estr.", options: { bold: true, fill: "003366", color: "FFFFFF" } },
+                    { text: "Trafo", options: { bold: true, fill: "003366", color: "FFFFFF" } },
+                    { text: "Cli.", options: { bold: true, fill: "003366", color: "FFFFFF" } }
+                ]
+            ];
+
+            for (let j = i; j < i + 10 && j < puntosLevantados.length; j++) {
+                let p = puntosLevantados[j];
+                filasTabla.push([
+                    p.apoyo,
+                    p.utm,
+                    `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`,
+                    `${p.poste} / ${p.estructura}`,
+                    p.trafo,
+                    p.clientes
+                ]);
+            }
+            slide.addTable(filasTabla, { x: 0.3, y: 0.5, w: 9.4, fontSize: 7, border: { type: 'solid', color: 'CCCCCC' }, align: 'center' });
+        }
+
+        await pptx.writeFile({ fileName: `Zonificacion_${sector}_${circuito}.pptx` });
+
+        // Regresar a vista satelital
+        mapZ.removeLayer(capaCallesPlano);
+        capaSatelite.addTo(mapZ);
+        alert("Reporte generado con éxito.");
+
+    } catch (error) {
+        console.error("Error general:", error);
+        alert("Ocurrió un error al generar el archivo: " + error.message);
+    }
 }
