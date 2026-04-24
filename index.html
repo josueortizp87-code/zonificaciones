@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zonificación Pro</title>
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Zonificación de Red</h2>
+
+    <select id="circuito">
+        <option>JUT-L379</option>
+        <option>JUT-L380</option>
+    </select>
+
+    <input type="text" id="zona" placeholder="Zona">
+
+    <div id="map-zonif"></div>
+
+    <div class="grid">
+        <button onclick="App.abrirModal('EXISTENTE')">+ EXISTENTE</button>
+        <button onclick="App.abrirModal('PROYECTADA')">+ PROYECTADA</button>
+    </div>
+
+    <div class="grid">
+        <button onclick="App.setModoLinea('EXISTENTE')">Línea Existente</button>
+        <button onclick="App.setModoLinea('PROYECTADA')">Línea Proyectada</button>
+    </div>
+
+    <button onclick="App.generarPPT()">GENERAR PPT</button>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal">
+    <div class="modal-content">
+        <input id="apoyo" placeholder="Apoyo">
+        <input id="clientes" type="number" placeholder="Clientes">
+        <button onclick="App.guardarPunto()">Guardar</button>
+        <button onclick="App.cerrarModal()">Cancelar</button>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs"></script>
+
+<script src="app.js"></script>
+
+</body>
+</html>
