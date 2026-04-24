@@ -8,19 +8,40 @@ var puntoOrigenParaLinea = null;
 const capaSatelite = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'], crossOrigin: true });
 const capaCallesPlano = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, crossOrigin: true });
 
-// --- 1. FUNCIÓN DE LOGIN ---
+// --- 1. BASE DE DATOS DE USUARIOS Y CIRCUITOS ---
+const CONFIG_ACCESO = {
+    "SUPER_JUT1": { pass: "enee2026", sector: "JUTICALPA", circuitos: ["JUT-L379", "JUT-L380", "JUT-L381", "JUT-L382", "CAT-L375", "CAT-L376"] },
+    "SUPER_JUT2": { pass: "enee2026", sector: "JUTICALPA", circuitos: ["JUT-L379", "JUT-L380", "JUT-L381", "JUT-L382", "CAT-L375", "CAT-L376"] },
+    "SUPER_CHO1": { pass: "enee2026", sector: "CHOLUTECA", circuitos: ["CHS-L307", "EBI-L312", "EBI-L313", "NNC-L304", "PAV-L365", "PAV-L366", "PAV-L367", "PAV-L368", "PAV-L369", "PRD-L360", "PRD-L361", "SLU-L318", "SLU-L320", "SLU-L355", "SLU-L356", "SLU-L357", "SLU-L358", "SLU-L359", "SLU-L361"] },
+    "SUPER_CHO2": { pass: "enee2026", sector: "CHOLUTECA", circuitos: ["CHS-L307", "EBI-L312", "EBI-L313", "NNC-L304", "PAV-L365", "PAV-L366", "PAV-L367", "PAV-L368", "PAV-L369", "PRD-L360", "PRD-L361", "SLU-L318", "SLU-L320", "SLU-L355", "SLU-L356", "SLU-L357", "SLU-L358", "SLU-L359", "SLU-L361"] },
+    "SUPER_TGU1": { pass: "enee2026", sector: "TEGUCIGALPA", circuitos: ["AMT-L333", "AMT-L335", "CDA-L270", "CDA-L271", "CDA-L272", "CDA-L273", "CDH-L344", "CDH-L345", "CHS-L307", "EBI-L312", "EBI-L313", "GMC-L377", "GMC-L378", "LLN-L231", "LLN-L232", "LLN-L233", "LLN-L234", "LNZ-L261", "LNZ-L262", "LNZ-L263", "LNZ-L264"] },
+    "SUPER_TGU2": { pass: "enee2026", sector: "TEGUCIGALPA", circuitos: ["AMT-L333", "AMT-L335", "CDA-L270", "CDA-L271", "CDA-L272", "CDA-L273", "CDH-L344", "CDH-L345", "CHS-L307", "EBI-L312", "EBI-L313", "GMC-L377", "GMC-L378", "LLN-L231", "LLN-L232", "LLN-L233", "LLN-L234", "LNZ-L261", "LNZ-L262", "LNZ-L263", "LNZ-L264"] }
+};
+
+let usuarioActivo = null;
+
 function validarAcceso() {
-    const u = document.getElementById('user-login').value;
+    const u = document.getElementById('user-login').value.toUpperCase();
     const p = document.getElementById('pass-login').value;
 
-    if((u === "josue.ortiz" && p === "enee2026") || (u === "admin" && p === "1234")) {
+    if (CONFIG_ACCESO[u] && CONFIG_ACCESO[u].pass === p) {
+        usuarioActivo = CONFIG_ACCESO[u];
         document.getElementById('login-container').style.display = 'none';
         document.getElementById('form-zonificacion-container').style.display = 'block';
+
+        const selectSector = document.getElementById('zonif-sector');
+        selectSector.innerHTML = `<option value="${usuarioActivo.sector}">${usuarioActivo.sector}</option>`;
+        selectSector.disabled = true;
+
+        const selectCircuito = document.getElementById('zonif-circuito');
+        selectCircuito.innerHTML = usuarioActivo.circuitos.map(c => `<option value="${c}">${c}</option>`).join('');
+
         initMapZonif();
-        // Forzar al mapa a recalcular su tamaño por si quedó gris al estar oculto
+        obtenerUbicacionGPS(); // <-- Llamada al GPS
+
         setTimeout(() => { mapZ.invalidateSize(); }, 400);
     } else {
-        alert("Credenciales incorrectas");
+        alert("Usuario o Contraseña incorrectos.");
     }
 }
 
@@ -29,6 +50,27 @@ function initMapZonif() {
     mapZ = L.map('map-zonif', { preferCanvas: false, renderer: L.svg() }).setView([14.65, -86.21], 16);
     capaSatelite.addTo(mapZ);
     markerZ = L.marker([14.65, -86.21], {draggable: true}).addTo(mapZ);
+}
+
+function obtenerUbicacionGPS() {
+    if ("geolocation" in navigator) {
+        // Opción para móviles: máxima precisión
+        const geoOptions = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        };
+
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            mapZ.setView([lat, lng], 18);
+            markerZ.setLatLng([lat, lng]);
+        }, function(error) {
+            console.warn("Error de GPS: ", error.message);
+        }, geoOptions);
+    }
 }
 
 function setModoDibujo(tipo) {
@@ -88,7 +130,7 @@ function dibujarPuntoEnMapa(p) {
             <text x="50" y="30" font-family="Arial" font-size="28" font-weight="bold" fill="black" text-anchor="middle" stroke="white" stroke-width="4" paint-order="stroke">${etiqueta}</text>
         </svg>`;
 
-    const icon = L.divIcon({ className: 'svg-marker', html: svgHtml, iconSize: [20, 20], iconAnchor: [10, 10] });
+    const icon = L.divIcon({ className: 'svg-marker', html: svgHtml, iconSize: [20, 20], iconAnchor: [10, 10], popupAnchor: [0, -10]});
     const m = L.marker([p.lat, p.lng], { icon: icon }).addTo(mapZ);
 
     m.on('click', function() {
