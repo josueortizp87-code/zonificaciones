@@ -1,120 +1,137 @@
 :root {
-    --primary: #1c2833;
-    --accent: #0984e3;
-    --success: #27ae60;
+    --bg-dark: #121212;
+    --card-bg: #1e272e;
+    --enee-blue: #0984e3;
+    --white: #ffffff;
+    --text-muted: #bdc3c7;
 }
 
 body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background-color: #111;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    padding: 20px;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--bg-dark);
+    margin: 0; padding: 20px;
+    display: flex; justify-content: center;
 }
 
 .container {
-    background: var(--primary);
-    padding: 25px;
+    background: var(--card-bg);
+    padding: 30px;
     border-radius: 20px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.7);
-    width: 100%;
-    max-width: 550px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+    width: 100%; max-width: 550px;
 }
 
-.logo-central {
-    display: block;
-    margin: 0 auto 10px;
-    height: 60px;
+.logo-container {
     background: white;
-    padding: 10px;
+    padding: 15px;
     border-radius: 12px;
+    display: inline-block;
+    margin-bottom: 15px;
 }
 
-.titulo-blanco {
-    color: white;
-    font-size: 1.2rem;
-    text-align: center;
+.logo-container img { height: 60px; }
+
+.titulo-principal {
+    color: var(--white);
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 10px 0;
+    letter-spacing: 1px;
 }
 
-.label-resaltado {
-    color: #0984e3;
-    font-weight: bold;
+.subtitulo { color: var(--text-muted); font-size: 0.8em; margin-bottom: 25px; }
+
+.label-destacado {
     display: block;
-    margin-bottom: 5px;
+    color: var(--enee-blue);
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+    text-transform: uppercase;
 }
 
-.select-profesional, .input-profesional {
+.input-resaltado {
     width: 100%;
-    padding: 10px;
+    padding: 14px;
     background: #2c3e50;
     border: 2px solid #34495e;
-    border-radius: 8px;
-    color: white;
-    margin-bottom: 15px;
-}
-
-.mapa-borde {
-    height: 350px;
     border-radius: 12px;
-    border: 2px solid #0984e3;
+    color: white;
+    font-size: 1em;
+    box-sizing: border-box;
     margin-bottom: 15px;
+    transition: 0.3s ease;
 }
 
-.grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+.input-resaltado:focus {
+    border-color: var(--enee-blue);
+    outline: none;
+    box-shadow: 0 0 12px rgba(9, 132, 227, 0.4);
 }
 
-.btn-accion {
-    padding: 12px;
+.mapa-estilo {
+    height: 380px;
+    border-radius: 15px;
+    border: 3px solid #0984e3;
+    margin: 15px 0;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.btn-main {
+    padding: 15px;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     color: white;
     font-weight: bold;
     cursor: pointer;
+    transition: 0.3s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 
-.btn-linea {
-    padding: 8px;
+.btn-main:hover { transform: translateY(-2px); opacity: 0.9; }
+
+.btn-outline {
     background: transparent;
     border: 2px solid;
-    border-radius: 8px;
+    padding: 10px;
+    border-radius: 10px;
     font-weight: bold;
     cursor: pointer;
 }
 
 .btn-pptx {
     width: 100%;
-    padding: 15px;
+    padding: 18px;
     background: #e67e22;
     color: white;
     border: none;
-    border-radius: 10px;
+    border-radius: 15px;
+    font-size: 1.1em;
     font-weight: bold;
-    margin-top: 20px;
+    margin-top: 30px;
     cursor: pointer;
+    box-shadow: 0 5px 20px rgba(230, 126, 34, 0.4);
 }
 
 /* Modal Estilo */
 .modal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85);
-    display: flex; align-items: center; justify-content: center;
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.92);
+    display: none; align-items: center; justify-content: center;
     z-index: 9999;
 }
 
 .modal-content {
-    background: #2c3e50;
-    width: 90%; max-width: 400px;
-    padding: 20px;
-    border-radius: 15px;
+    background: #2d3436;
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%; max-width: 450px;
     color: white;
 }
 
-.input-form {
-    width: 100%; padding: 8px; margin: 5px 0 15px;
-    border-radius: 5px; border: none;
+.input-modal {
+    width: 100%; padding: 12px; margin: 10px 0 20px;
+    border-radius: 8px; border: 1px solid #555;
+    background: #fdfdfd; color: #333;
 }
